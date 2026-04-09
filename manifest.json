@@ -550,34 +550,6 @@
         "Archs": "x64"
       }
     },
-    "caret": {
-      "Source": "CRAN",
-      "Repository": "https://cloud.r-project.org",
-      "description": {
-        "Package": "caret",
-        "Title": "Classification and Regression Training",
-        "Version": "7.0-1",
-        "Authors@R": "\n    c(person(given = \"Max\",\n             family = \"Kuhn\",\n             role = c(\"aut\", \"cre\"),\n             email = \"mxkuhn@gmail.com\",\n             comment = c(ORCID = \"0000-0003-2402-136X\")),\n      person(given = \"Jed\",\n             family = \"Wing\",\n             role = \"ctb\"),\n      person(given = \"Steve\",\n             family = \"Weston\",\n             role = \"ctb\"),\n      person(given = \"Andre\",\n             family = \"Williams\",\n             role = \"ctb\"),\n      person(given = \"Chris\",\n             family = \"Keefer\",\n             role = \"ctb\"),\n      person(given = \"Allan\",\n             family = \"Engelhardt\",\n             role = \"ctb\"),\n      person(given = \"Tony\",\n             family = \"Cooper\",\n             role = \"ctb\"),\n      person(given = \"Zachary\",\n             family = \"Mayer\",\n             role = \"ctb\"),\n      person(given = \"Brenton\",\n             family = \"Kenkel\",\n             role = \"ctb\"),\n      person(given = \"R Core Team\",\n             role = \"ctb\"),\n      person(given = \"Michael\",\n             family = \"Benesty\",\n             role = \"ctb\"),\n      person(given = \"Reynald\",\n             family = \"Lescarbeau\",\n             role = \"ctb\"),\n      person(given = \"Andrew\",\n             family = \"Ziem\",\n             role = \"ctb\"),\n      person(given = \"Luca\",\n             family = \"Scrucca\",\n             role = \"ctb\"),\n      person(given = \"Yuan\",\n             family = \"Tang\",\n             role = \"ctb\"),\n      person(given = \"Can\",\n             family = \"Candan\",\n             role = \"ctb\"),\n      person(given = \"Tyler\",\n             family = \"Hunt\",\n             role = \"ctb\"))",
-        "Description": "Misc functions for training and plotting classification and\n    regression models.",
-        "License": "GPL (>= 2)",
-        "URL": "https://github.com/topepo/caret/",
-        "BugReports": "https://github.com/topepo/caret/issues",
-        "Depends": "ggplot2, lattice (>= 0.20), R (>= 3.2.0)",
-        "Imports": "e1071, foreach, grDevices, methods, ModelMetrics (>= 1.2.2.2),\nnlme, plyr, pROC, recipes (>= 0.1.10), reshape2, stats, stats4,\nutils, withr (>= 2.0.0)",
-        "Suggests": "BradleyTerry2, covr, Cubist, dplyr, earth (>= 2.2-3),\nellipse, fastICA, gam (>= 1.15), ipred, kernlab, klaR, knitr,\nMASS, Matrix, mda, mgcv, mlbench, MLmetrics, nnet, pamr, party\n(>= 0.9-99992), pls, proxy, randomForest, RANN, rmarkdown,\nrpart, spls, superpc, testthat (>= 0.9.1), themis (>= 0.1.3)",
-        "VignetteBuilder": "knitr",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2",
-        "NeedsCompilation": "yes",
-        "Packaged": "2024-12-09 16:28:32 UTC; max",
-        "Author": "Max Kuhn [aut, cre] (<https://orcid.org/0000-0003-2402-136X>),\n  Jed Wing [ctb],\n  Steve Weston [ctb],\n  Andre Williams [ctb],\n  Chris Keefer [ctb],\n  Allan Engelhardt [ctb],\n  Tony Cooper [ctb],\n  Zachary Mayer [ctb],\n  Brenton Kenkel [ctb],\n  R Core Team [ctb],\n  Michael Benesty [ctb],\n  Reynald Lescarbeau [ctb],\n  Andrew Ziem [ctb],\n  Luca Scrucca [ctb],\n  Yuan Tang [ctb],\n  Can Candan [ctb],\n  Tyler Hunt [ctb]",
-        "Maintainer": "Max Kuhn <mxkuhn@gmail.com>",
-        "Repository": "CRAN",
-        "Date/Publication": "2024-12-10 01:30:01 UTC",
-        "Built": "R 4.3.3; x86_64-w64-mingw32; 2025-03-10 04:46:22 UTC; windows",
-        "Archs": "x64"
-      }
-    },
     "checkmate": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -2352,7 +2324,7 @@
         "BugReports": "https://github.com/mlr-org/mlr/issues",
         "Depends": "ParamHelpers (>= 1.10), R (>= 3.0.2)",
         "Imports": "backports (>= 1.1.0), BBmisc (>= 1.11), checkmate (>= 1.8.2),\ndata.table (>= 1.12.4), ggplot2, methods, parallelMap (>= 1.3),\nstats, stringi, survival, utils, XML",
-        "Suggests": "ada, adabag, batchtools, bit64, brnn, bst, C50, care, caret\n(>= 6.0-57), class, clue, cluster, ClusterR, clusterSim (>=\n0.44-5), cmaes, cowplot, crs, Cubist, deepnet, DiceKriging,\ne1071, earth, elasticnet, emoa, evtree, fda.usc, FDboost, FNN,\nforecast (>= 8.3), fpc, frbs, FSelector, FSelectorRcpp (>=\n0.3.5), gbm, GenSA, ggpubr, glmnet, GPfit, h2o (>= 3.6.0.8),\nHmisc, irace (>= 2.0), kernlab, kknn, klaR, knitr, laGP,\nLiblineaR, lintr (>= 1.0.0.9001), MASS, mboost, mco, mda,\nmemoise, mlbench, mldr, mlrMBO, modeltools, mRMRe, neuralnet,\nnnet, numDeriv, pamr, pander, party, pec, penalized (>=\n0.9-47), pls, PMCMRplus, praznik (>= 5.0.0), randomForest,\nranger (>= 0.8.0), rappdirs, refund, rex, rFerns, rgenoud,\nrmarkdown, Rmpi, ROCR, rotationForest, rpart, RRF, rsm, RSNNS,\nrucrdtw, RWeka, sda, sf, smoof, sparseLDA, stepPlr, survAUC,\nsvglite, testthat, tgp, TH.data, tidyr, tsfeatures, vdiffr,\nwavelets, xgboost (>= 0.7)",
+        "Suggests": "ada, adabag, batchtools, bit64, brnn, bst, C50, care, class, clue, cluster, ClusterR, clusterSim (>=\n0.44-5), cmaes, cowplot, crs, Cubist, deepnet, DiceKriging,\ne1071, earth, elasticnet, emoa, evtree, fda.usc, FDboost, FNN,\nforecast (>= 8.3), fpc, frbs, FSelector, FSelectorRcpp (>=\n0.3.5), gbm, GenSA, ggpubr, glmnet, GPfit, h2o (>= 3.6.0.8),\nHmisc, irace (>= 2.0), kernlab, kknn, klaR, knitr, laGP,\nLiblineaR, lintr (>= 1.0.0.9001), MASS, mboost, mco, mda,\nmemoise, mlbench, mldr, mlrMBO, modeltools, mRMRe, neuralnet,\nnnet, numDeriv, pamr, pander, party, pec, penalized (>=\n0.9-47), pls, PMCMRplus, praznik (>= 5.0.0), randomForest,\nranger (>= 0.8.0), rappdirs, refund, rex, rFerns, rgenoud,\nrmarkdown, Rmpi, ROCR, rotationForest, rpart, RRF, rsm, RSNNS,\nrucrdtw, RWeka, sda, sf, smoof, sparseLDA, stepPlr, survAUC,\nsvglite, testthat, tgp, TH.data, tidyr, tsfeatures, vdiffr,\nwavelets, xgboost (>= 0.7)",
         "VignetteBuilder": "knitr",
         "ByteCompile": "yes",
         "Config/testthat/edition": "3",
@@ -2913,7 +2885,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "RoxygenNote": "7.3.2",
         "Suggests": "bigRaster, liquidSVM, knitr, rmarkdown, testthat (>= 3.0.0),\ndplyr",
-        "Imports": "caret, matrixStats, methods, pracma, raster, simsalapar,\nutils, progress, prospect, XML, truncnorm, magrittr, stringr,\nkernlab, terra, sf, progressr, mlr, ParamHelpers",
+        "Imports": " matrixStats, methods, pracma, raster, simsalapar,\nutils, progress, prospect, XML, truncnorm, magrittr, stringr,\nkernlab, terra, sf, progressr, mlr, ParamHelpers",
         "Remotes": "github::jbferet/prospect, gitlab::jbferet/bigRaster",
         "VignetteBuilder": "knitr",
         "URL": "https://gitlab.com/jbferet/prosail",
