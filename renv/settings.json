@@ -1,10 +1,7 @@
 {
   "bioconductor.version": null,
   "external.libraries": [],
-  "ignored.packages": [
-    "recipes",
-    "BiocVersion"
-  ],
+  "ignored.packages": [],
   "package.dependency.fields": [
     "Imports",
     "Depends",
