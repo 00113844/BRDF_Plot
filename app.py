@@ -53,8 +53,8 @@ def calculate_solar_geometry(lat, lon, date_obj, hour, minute):
         if ha > 0:
             saa = 360 - saa
             
-    # Clamp sza for PROSAIL safety (avoid exactly 90 or negative)
-    return min(sza, 89.9), saa
+    # Return true SZA — let the caller handle nighttime / extreme angles
+    return sza, saa
 
 # --- Session State for map-driven lat/lon ---
 # Apply any map click from the previous run BEFORE widgets are created
@@ -95,9 +95,16 @@ with st.sidebar:
     run_btn = st.button("Run Simulation", type="primary", use_container_width=True)
 
 # --- Logic & Simulation ---
-sza, saa = calculate_solar_geometry(lat_val, lon_val, input_date, hour, minute)
+actual_sza, saa = calculate_solar_geometry(lat_val, lon_val, input_date, hour, minute)
+# Safe cap for PROSAIL — model is not validated beyond ~85°
+prosail_sza = min(actual_sza, 85.0)
 
-st.sidebar.markdown(f"**Solar Zenith:** `{sza:.2f}°`")
+if actual_sza >= 90.0:
+    st.sidebar.error(f"Sun below horizon (SZA = {actual_sza:.1f}°). Adjust time or location.")
+elif actual_sza > 80.0:
+    st.sidebar.warning(f"High solar zenith: {actual_sza:.2f}° — results may be unreliable.")
+else:
+    st.sidebar.success(f"Solar Zenith: {actual_sza:.2f}°")
 st.sidebar.markdown(f"**Solar Azimuth:** `{saa:.2f}°` (N-relative)")
 
 tab_map, tab_polar, tab_spec = st.tabs(["Location Map", "Polar BRDF Plot", "Full Spectrum"])
@@ -120,63 +127,67 @@ with tab_map:
         st.success(f"Location: {clicked_lat:.4f}°, {clicked_lng:.4f}°")
 
 if run_btn:
-    with st.spinner("Simulating Radiative Transfer..."):
-        # 1. Full Spectrum at Nadir
-        # Python prosail parameters: n, cab, car, cbrown, cw, cm, lai, lidfa, hspot, tts, tto, psi, psoil
-        # Wavelengths 400-2500nm (2101 bands)
-        refl_nadir = prosail.run_prosail(n_param, cab, car, 0.0, 0.015, 0.009, lai, lidfa, hspot, sza, 0, 0,
-                                        rsoil=rsoil, psoil=psoil)
-        wvl = np.arange(400, 2501)
-        
-        # 2. BRDF Grid
-        vzas = np.arange(0, 81, 5)
-        raas = np.arange(0, 361, 10)
-        V, R = np.meshgrid(raas, vzas)
-        # V[i,j] = raas[j] (azimuth), R[i,j] = vzas[i] (VZA)
-        raa_f = V.flatten()
-        vza_f = R.flatten()
-        vi_vals = []
-        
-        for v, r in zip(vza_f, raa_f):
-            # v = view zenith angle (0-80), r = relative azimuth (0-360)
-            res = prosail.run_prosail(n_param, cab, car, 0.0, 0.015, 0.009, lai, lidfa, hspot, sza, v, r,
-                                     rsoil=rsoil, psoil=psoil)
-            # Band Indices: 670nm = 270, 800nm = 400, 705nm = 305, 470nm = 70
-            red, nir, rededge, blue = res[270], res[400], res[305], res[70]
-            
-            if vi_choice == "NDVI":
-                vi_vals.append((nir - red) / (nir + red))
-            elif vi_choice == "NDRE":
-                vi_vals.append((nir - rededge) / (nir + rededge))
-            elif vi_choice == "SAVI":
-                vi_vals.append(1.5 * (nir - red) / (nir + red + 0.5))
+    if actual_sza >= 90.0:
+        st.error(f"Cannot simulate: the sun is below the horizon (SZA = {actual_sza:.1f}°). "
+                 "Select a daytime hour for the chosen location, or change the location.")
+    else:
+        with st.spinner("Simulating Radiative Transfer..."):
+            # 1. Full Spectrum at Nadir
+            # Python prosail: n, cab, car, cbrown, cw, cm, lai, lidfa, hspot, tts, tto, psi
+            # Wavelengths 400-2500nm (2101 bands)
+            refl_nadir = prosail.run_prosail(n_param, cab, car, 0.0, 0.015, 0.009, lai, lidfa, hspot, prosail_sza, 0, 0,
+                                            rsoil=rsoil, psoil=psoil)
+            wvl = np.arange(400, 2501)
 
-        Z = np.array(vi_vals).reshape(V.shape)
+            # 2. BRDF Grid
+            vzas = np.arange(0, 81, 5)
+            raas = np.arange(0, 361, 10)
+            V, R = np.meshgrid(raas, vzas)
+            # V[i,j] = raas[j] (azimuth), R[i,j] = vzas[i] (VZA)
+            raa_f = V.flatten()
+            vza_f = R.flatten()
+            vi_vals = []
 
-        with tab_polar:
-            fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': 'polar'})
-            ax.set_theta_zero_location("N")
-            ax.set_theta_direction(-1) # Clockwise
-            
-            # Create choropleth mesh
-            c = ax.pcolormesh(np.radians(V), R, Z, cmap='magma', shading='auto')
-            plt.colorbar(c, label=vi_choice, ax=ax, pad=0.1)
-            
-            # Plot Sun Position
-            ax.plot(np.radians(saa), sza, marker='o', color='orange', markersize=12, label='Sun Position', markeredgecolor='white')
-            
-            ax.set_title(f"{vi_choice} Angular Variation", pad=20, fontsize=15)
-            ax.set_rlabel_position(135)
-            st.pyplot(fig)
+            for v, r in zip(vza_f, raa_f):
+                res = prosail.run_prosail(n_param, cab, car, 0.0, 0.015, 0.009, lai, lidfa, hspot, prosail_sza, v, r,
+                                         rsoil=rsoil, psoil=psoil)
+                # Band indices (0-based): 670nm=270, 800nm=400, 705nm=305, 470nm=70
+                red, nir, rededge, blue = res[270], res[400], res[305], res[70]
 
-        with tab_spec:
-            fig_s, ax_s = plt.subplots(figsize=(10, 5))
-            ax_s.plot(wvl, refl_nadir, color='forestgreen', lw=2)
-            ax_s.set_xlabel("Wavelength (nm)")
-            ax_s.set_ylabel("Reflectance")
-            ax_s.set_title("Nadir Spectral Signature")
-            ax_s.grid(True, alpha=0.3)
-            st.pyplot(fig_s)
+                if vi_choice == "NDVI":
+                    vi_vals.append((nir - red) / (nir + red))
+                elif vi_choice == "NDRE":
+                    vi_vals.append((nir - rededge) / (nir + rededge))
+                elif vi_choice == "SAVI":
+                    vi_vals.append(1.5 * (nir - red) / (nir + red + 0.5))
+
+            Z = np.array(vi_vals).reshape(V.shape)
+
+            with tab_polar:
+                fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': 'polar'})
+                ax.set_theta_zero_location("N")
+                ax.set_theta_direction(-1)  # Clockwise
+
+                c = ax.pcolormesh(np.radians(V), R, Z, cmap='magma', shading='auto')
+                plt.colorbar(c, label=vi_choice, ax=ax, pad=0.1)
+
+                ax.plot(np.radians(saa), actual_sza, marker='o', color='orange', markersize=12,
+                        label='Sun Position', markeredgecolor='white')
+
+                ax.set_title(f"{vi_choice} Angular Variation (SZA={prosail_sza:.1f}°)", pad=20, fontsize=15)
+                ax.set_rlabel_position(135)
+                if actual_sza > 80:
+                    st.warning(f"Note: actual SZA={actual_sza:.1f}°, capped to {prosail_sza:.1f}° for PROSAIL.")
+                st.pyplot(fig)
+
+            with tab_spec:
+                fig_s, ax_s = plt.subplots(figsize=(10, 5))
+                ax_s.plot(wvl, refl_nadir, color='forestgreen', lw=2)
+                ax_s.set_xlabel("Wavelength (nm)")
+                ax_s.set_ylabel("Reflectance")
+                ax_s.set_title("Nadir Spectral Signature")
+                ax_s.grid(True, alpha=0.3)
+                st.pyplot(fig_s)
 else:
     with tab_polar:
         st.info("Adjust parameters in the sidebar and click **Run Simulation** to generate the BRDF polar plot.")
