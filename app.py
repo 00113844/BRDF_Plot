@@ -20,13 +20,14 @@ def calculate_solar_geometry(lat, lon, date_obj, hour, minute):
     # Fractional year in radians
     gamma = 2 * math.pi / 365 * (doy - 1 + (time_dec - 12) / 24)
     
-    # Equation of time (minutes)
-    eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) - 
-                     0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
+    # Equation of time (minutes) — Spencer (1971) corrected constant: 0.0000075 not 0.000075
+    eqtime = 229.18 * (0.0000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) -
+                      0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
     
-    # Declination (radians)
-    decl = 0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma) - \
-           0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma)
+    # Declination (radians) — Spencer (1971) full 3rd-order series
+    decl = (0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma)
+            - 0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma)
+            - 0.002697 * math.cos(3 * gamma) + 0.00148 * math.sin(3 * gamma))
     
     # True Solar Time
     time_offset = eqtime + 4 * lon
@@ -55,6 +56,18 @@ def calculate_solar_geometry(lat, lon, date_obj, hour, minute):
     # Clamp sza for PROSAIL safety (avoid exactly 90 or negative)
     return min(sza, 89.9), saa
 
+# --- Session State for map-driven lat/lon ---
+# Apply any map click from the previous run BEFORE widgets are created
+if st.session_state.get("_map_clicked"):
+    st.session_state["lat_val"] = st.session_state.pop("_map_lat")
+    st.session_state["lon_val"] = st.session_state.pop("_map_lon")
+    st.session_state["_map_clicked"] = False
+
+if "lat_val" not in st.session_state:
+    st.session_state["lat_val"] = -31.95
+if "lon_val" not in st.session_state:
+    st.session_state["lon_val"] = 115.86
+
 # --- UI Layout ---
 st.title("PROSAIL BRDF & Spectrum Explorer")
 
@@ -64,7 +77,7 @@ with st.sidebar:
     cab = st.slider("cab (chlorophyll)", 0, 80, 40)
     car = st.slider("car (carotenoids)", 0, 30, 8)
     lai = st.slider("LAI (leaf area index)", 0.1, 8.0, 3.0)
-    lidfa = st.slider("LIDFa (leaf angle)", -1.0, 1.0, -0.35)
+    lidfa = st.slider("LIDFa (mean leaf angle °, 57=spherical)", 0.0, 90.0, 57.0)
     hspot = st.slider("hspot (hotspot)", 0.0, 1.0, 0.1)
     rsoil = st.slider("rsoil (soil brightness)", 0.0, 2.0, 1.0)
     psoil = st.slider("psoil (soil dryness 0=wet, 1=dry)", 0.0, 1.0, 1.0)
@@ -75,8 +88,8 @@ with st.sidebar:
     hour = c1.number_input("Hour", 0, 23, 12)
     minute = c2.number_input("Min", 0, 59, 0)
     
-    lat_val = st.number_input("Latitude", -90.0, 90.0, -31.95, step=0.01)
-    lon_val = st.number_input("Longitude", -180.0, 180.0, 115.86, step=0.01)
+    lat_val = st.number_input("Latitude", -90.0, 90.0, key="lat_val", step=0.01)
+    lon_val = st.number_input("Longitude", -180.0, 180.0, key="lon_val", step=0.01)
     
     vi_choice = st.selectbox("Vegetation Index", ["NDVI", "NDRE", "SAVI"])
     run_btn = st.button("Run Simulation", type="primary", use_container_width=True)
@@ -96,7 +109,15 @@ with tab_map:
     map_data = st_folium(m, height=450, width=800)
     
     if map_data and map_data.get("last_clicked"):
-        st.success(f"Selected: {map_data['last_clicked']['lat']:.4f}, {map_data['last_clicked']['lng']:.4f}. Update these in the sidebar!")
+        clicked_lat = map_data["last_clicked"]["lat"]
+        clicked_lng = map_data["last_clicked"]["lng"]
+        if (abs(clicked_lat - st.session_state["lat_val"]) > 1e-6 or
+                abs(clicked_lng - st.session_state["lon_val"]) > 1e-6):
+            st.session_state["_map_lat"] = clicked_lat
+            st.session_state["_map_lon"] = clicked_lng
+            st.session_state["_map_clicked"] = True
+            st.rerun()
+        st.success(f"Location: {clicked_lat:.4f}°, {clicked_lng:.4f}°")
 
 if run_btn:
     with st.spinner("Simulating Radiative Transfer..."):
